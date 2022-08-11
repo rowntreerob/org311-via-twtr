@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import { TwitterApi } from 'twitter-api-v2';
-import { requestClient, TOKENS } from '../config';
-import { asyncWrapOrError } from '../utils';
+import { requestClient, TOKENS } from '../config.js';
+import { asyncWrapOrError } from '../utils.js';
 
 export const pinRouter = Router();
 

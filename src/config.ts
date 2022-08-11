@@ -2,6 +2,12 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import { TwitterApi } from 'twitter-api-v2';
 
+
+
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 export const CONFIG = dotenv.parse(fs.readFileSync(__dirname + '/../.env'));
 
 export const TOKENS = {

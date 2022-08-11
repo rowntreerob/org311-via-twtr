@@ -1,8 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
 import session from 'express-session';
-import CONFIG from './config';
-import callbackRouter from './routes/callback';
-import pinRouter from './routes/pin';
+import CONFIG from './config.js';
+import callbackRouter from './routes/callback.js';
+import pinRouter from './routes/pin.js';
 
 // -- STARTUP --
 
