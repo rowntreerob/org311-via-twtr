@@ -12,4 +12,4 @@ export const TOKENS = {
 };
 // Create client used to generate auth links only
 export const requestClient = new TwitterApi({ ...TOKENS });
-export default CONFIG ={PORT: process.env.PORT!};
+export default CONFIG ={PORT: process.env.PORT!, MAPKEY: process.env.GOOGLE_MAPS_API_KEY!};

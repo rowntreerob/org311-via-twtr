@@ -1,8 +1,10 @@
+// @ts-nocheck TODO remove when fixed
 import { Router } from 'express';
 import { TwitterApi } from 'twitter-api-v2';
 import CONFIG, { requestClient, TOKENS } from '../config.js';
 import { asyncWrapOrError } from '../utils.js';
 import  got  from 'got';
+import exifr from 'exifr';
 
 export const callbackRouter = Router();
 
@@ -77,6 +79,7 @@ callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
   }));
 
 // Read data from Twitter *authorize* callback
+
 callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   // Invalid request
   if (!req.query.oauth_token || !req.query.oauth_verifier) {
@@ -88,6 +91,7 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   const savedToken = req.session.oauthToken;
   const savedSecret = req.session.oauthSecret;
   const savedUrl = req.session.photoUrl;
+  console.log(savedUrl);
   if (!savedToken || !savedSecret || savedToken !== token) {
     res.status(400).render('error', { error: 'OAuth token is not known or invalid. Your request may have expire. Please renew the auth process.' });
     return;
@@ -97,11 +101,19 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   // Ask for definitive access token
   const {  accessToken, accessSecret, client, screenName, userId } = await tempClient.login(verifier);
   // You can store & use accessToken + accessSecret to create a new client and make API calls!
-  const myBuff = await got({ url: savedUrl }).buffer();
-  const myId :string = await client.v1.uploadMedia(myBuff,  { type: "png" });
-  await client.v1.tweet('Hello, testing' , {media_ids: myId});
-
-  res.render('callback', { accessToken, accessSecret, screenName, userId });
+  const myBuff = await got({ url: savedUrl }).buffer(); //fetch photo as buffer from AWS bucket
+  let {latitude, longitude} = await exifr.gps(myBuff);  // api -> get EXIF latlng from buffer(photo)
+  // api from gps.latLng to street address
+  const rsult = await got.get(
+  `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${CONFIG.MAPKEY}`).json();
+  const mapAddr = rsult.results[0].formatted_address;  // parse street.addr
+  const myId :string = await client.v1.uploadMedia(myBuff,  { type: "png" }); // supply photo to twitr API
+  const mytweet = await client.v1.tweet(`Hello, testing addr ${mapAddr}` , {media_ids: myId}); // submit tweet w media -> photo
+  const stsLink = mytweet.full_text;
+  //console.log(mytweet)
+  // parse *mytweet.full_text* for a link to new tweet
+  //full_text: 'Hello, testing addr 1129 Florida St, San Francisco, CA 94110, USA https://t.co/S99YhWLhfX',
+  res.render('callback', { accessToken, accessSecret, latitude, longitude, screenName, stsLink, userId });
 }));
 
 // Read data from Twitter callback

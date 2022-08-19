@@ -42,5 +42,5 @@ app.use((err: any, _: Request, res: Response, __: NextFunction) => {
 
 // Start server
 app.listen(Number(CONFIG.PORT), () => {
-  console.log(`App is listening on port ${CONFIG.PORT}.`);
+  console.log(`App is listening on port ${CONFIG.PORT} maps ${CONFIG.MAPKEY}.`);
 });
