@@ -11,16 +11,14 @@
     <div id="root">
       <strong>Congratulations!</strong>
       <br>
-      You are successfully logged in to Twitter using your application.
+      You logged in to Twitter, this app tweeted for you.
 
       <ul>
-        <li>Access token: <%= accessToken %></li>
-        <li>Access secret: <%= accessSecret %></li>
-        <li>User ID: <%= userId %></li>
+
         <li>Username: @<%= screenName %></li>
         <li>Latitude: <%= latitude %></li>
         <li>Longitude: @<%= longitude %></li>
-        <li>Tweet: @<%= stsLink %></li>
+        <li>Link: <a href=<%= stsLnk %> >Your tweet</a> </li>
       </ul>
     </div>
   </main>

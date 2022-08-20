@@ -14,7 +14,6 @@ export const callbackRouter = Router();
 // Serve HTML index page with callback link that tests txt only post api(twtr)
 callbackRouter.get('/', asyncWrapOrError(async (req, res) => {
   let link;
-    console.log('link per ', process.env.NODE_ENV);
   if (process.env.NODE_ENV === 'development') {
     link = await requestClient.generateAuthLink(`http://localhost:${CONFIG.PORT}/callback`);
   } else {
@@ -37,7 +36,6 @@ for auth service, access_token and twitter api *post.status* with media_id
 */
 callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
   let link;
-    console.log('link per ', process.env.NODE_ENV);
   if (process.env.NODE_ENV === 'development') {
     link = await requestClient.generateAuthLink(`http://localhost:${CONFIG.PORT}/callbk`);
   } else {
@@ -48,7 +46,7 @@ callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
   req.session.oauthToken = link.oauth_token;
   req.session.oauthSecret = link.oauth_token_secret;
   req.session.photoUrl = decodeURI(req.params.url);
-  console.log('index sesn url ' +req.session.photoUrl)
+//  console.log('index sesn url ' +req.session.photoUrl)
   res.render('index', { authLink: link.url, authMode: 'callback' });
   }));
 
@@ -72,7 +70,7 @@ callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
     // Ask for definitive access token
     const { accessToken, accessSecret, client, screenName, userId } = await tempClient.login(verifier);
 
-  console.log('Client entry ' +token);
+  // console.log('Client entry ' +token);
   // await tmpClient.v1.tweet('Hello, this is a test.');
   const homeTimeline = await client.v1.tweet('testing sts api');
     res.render('callback', { accessToken, accessSecret, screenName, userId });
@@ -91,7 +89,7 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   const savedToken = req.session.oauthToken;
   const savedSecret = req.session.oauthSecret;
   const savedUrl = req.session.photoUrl;
-  console.log(savedUrl);
+  // console.log(savedUrl);
   if (!savedToken || !savedSecret || savedToken !== token) {
     res.status(400).render('error', { error: 'OAuth token is not known or invalid. Your request may have expire. Please renew the auth process.' });
     return;
@@ -109,11 +107,14 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   const mapAddr = rsult.results[0].formatted_address;  // parse street.addr
   const myId :string = await client.v1.uploadMedia(myBuff,  { type: "png" }); // supply photo to twitr API
   const mytweet = await client.v1.tweet(`Hello, testing addr ${mapAddr}` , {media_ids: myId}); // submit tweet w media -> photo
-  const stsLink = mytweet.full_text;
-  //console.log(mytweet)
+  const short: string = mytweet.full_text;
+  //console.log(short)
+  const stsLnk = parseLnk(short, '://');
+
+  console.log(mytweet.full_text, ' ', stsLnk)
   // parse *mytweet.full_text* for a link to new tweet
   //full_text: 'Hello, testing addr 1129 Florida St, San Francisco, CA 94110, USA https://t.co/S99YhWLhfX',
-  res.render('callback', { accessToken, accessSecret, latitude, longitude, screenName, stsLink, userId });
+  res.render('callback', {  latitude, longitude, screenName, stsLnk });
 }));
 
 // Read data from Twitter callback
@@ -143,5 +144,10 @@ const _url = decodeURI(req.params.photo);
   res.render('callback', { accessToken, accessSecret, screenName, userId });
 }));
 
+function parseLnk(tweet , match) {
+  const part = tweet.indexOf(match);
+  //console.log('idx' , part)
+  return 'https:'+ tweet.substring(part + 1);
+}
 
 export default callbackRouter;
