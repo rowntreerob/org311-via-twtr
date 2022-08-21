@@ -139,7 +139,7 @@ const _url = decodeURI(req.params.photo);
   //const _url = 'https://bubble-yaya-tst.s3.amazonaws.com/photo/-4n8Kx9DXgupJtQ5G-i9C/fred_fwrd_5yr.png';
   const myBuff = await got({ url: _url }).buffer();
   const myId :string = await client.v1.uploadMedia(myBuff,  { type: "png" });
-  await client.v1.tweet('Hello, testing' , {media_ids: myId});
+  await client.v1.tweet('@yayatvapp testing streets reporting via picture  #savethedrop' , {media_ids: myId});
 
   res.render('callback', { accessToken, accessSecret, screenName, userId });
 }));
