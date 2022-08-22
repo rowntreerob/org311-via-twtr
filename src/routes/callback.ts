@@ -106,7 +106,7 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${CONFIG.MAPKEY}`).json();
   const mapAddr = rsult.results[0].formatted_address;  // parse street.addr
   const myId :string = await client.v1.uploadMedia(myBuff,  { type: "png" }); // supply photo to twitr API
-  const mytweet = await client.v1.tweet(`Hello, testing addr ${mapAddr}` , {media_ids: myId}); // submit tweet w media -> photo
+  const mytweet = await client.v1.tweet(`@yayatvapp testing streets reporting via picture using ${mapAddr}  #savethedrop ` , {media_ids: myId}); // submit tweet w media -> photo
   const short: string = mytweet.full_text;
   //console.log(short)
   const stsLnk = parseLnk(short, '://');
