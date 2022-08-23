@@ -16,8 +16,8 @@ callbackRouter.get('/', asyncWrapOrError(async (req, res) => {
   let link;
   if (process.env.NODE_ENV === 'development') {
     link = await requestClient.generateAuthLink(`http://localhost:${CONFIG.PORT}/callback`);
-  } else {
-    link = await requestClient.generateAuthLink(`https://pure-dusk-35729.herokuapp.com/callback`);
+  } else {//CONFIG.MAP.KEY, CONFIG.MAP.GEOCD, CONFIG.OAUTH_DOMAIN
+    link = await requestClient.generateAuthLink(`${CONFIG.OAUTH_DOMAIN}callback`);
   }
   req.session.oauthToken = link.oauth_token;
   req.session.oauthSecret = link.oauth_token_secret;
@@ -38,7 +38,7 @@ callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
   let link;
   if (process.env.NODE_ENV === 'development') {
     link = await requestClient.generateAuthLink(`http://localhost:${CONFIG.PORT}/callbk`);
-  } else {
+  } else { //CONFIG.MAP.KEY, CONFIG.MAP.GEOCD, CONFIG.OAUTH_DOMAIN
     link = await requestClient.generateAuthLink(`https://pure-dusk-35729.herokuapp.com/callbk`);
   }
 
@@ -102,8 +102,8 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   const myBuff = await got({ url: savedUrl }).buffer(); //fetch photo as buffer from AWS bucket
   let {latitude, longitude} = await exifr.gps(myBuff);  // api -> get EXIF latlng from buffer(photo)
   // api from gps.latLng to street address
-  const rsult = await got.get(
-  `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${CONFIG.MAPKEY}`).json();
+  const rsult = await got.get(  //CONFIG.MAP.KEY, CONFIG.MAP.GEOCD, CONFIG.OAUTH_DOMAIN
+  `${CONFIG.MAP.GEOCD}?latlng=${latitude},${longitude}&key=${CONFIG.MAP.KEY}`).json();
   const mapAddr = rsult.results[0].formatted_address;  // parse street.addr
   const myId :string = await client.v1.uploadMedia(myBuff,  { type: "png" }); // supply photo to twitr API
   const mytweet = await client.v1.tweet(`@yayatvapp testing streets reporting via picture using ${mapAddr}  #savethedrop ` , {media_ids: myId}); // submit tweet w media -> photo
