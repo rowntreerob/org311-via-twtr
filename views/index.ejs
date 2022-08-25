@@ -12,7 +12,7 @@
       <strong>Hello!</strong>
       <br>
       <% if (authMode === 'callback') { %>
-        <a href="<%= authLink %>">Click here</a> to start login flow in your application.
+        <a href="<%= authLink %>">Click here</a> to allow this app access to your credential.
       <% } %>
       <% if (authMode === 'pin') { %>
         <a id="auth-link" href="<%= authLink %>" target="_blank">Click here</a> to start login flow in your application (open in a new tab).

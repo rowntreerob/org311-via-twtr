@@ -16,29 +16,23 @@ callbackRouter.get('/', asyncWrapOrError(async (req, res) => {
   let link;
   if (process.env.NODE_ENV === 'development') {
     link = await requestClient.generateAuthLink(`http://localhost:${CONFIG.PORT}/callback`);
-  } else {//CONFIG.MAP.KEY, CONFIG.MAP.GEOCD, CONFIG.OAUTH_DOMAIN
+  } else {
     link = await requestClient.generateAuthLink(`${CONFIG.OAUTH_DOMAIN}callback`);
   }
   req.session.oauthToken = link.oauth_token;
   req.session.oauthSecret = link.oauth_token_secret;
-
   res.render('index', { authLink: link.url, authMode: 'callback' });
-
-  //var hostpath = (process.env.NODE_ENV == 'production' ) ? 'https://pure-dusk-35729.herokuapp.com':'http://localhost:5000';
-
-  //const link = await requestClient.generateAuthLink(hostpath +'/callback');
-
 }));
 
 /*
 session.store url from aws bucket request from diff application
 for auth service, access_token and twitter api *post.status* with media_id
 */
-callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
+callbackRouter.get('/photo/:url/tag/:hashtg', asyncWrapOrError(async (req, res) => {
   let link;
   if (process.env.NODE_ENV === 'development') {
     link = await requestClient.generateAuthLink(`http://localhost:${CONFIG.PORT}/callbk`);
-  } else { //CONFIG.MAP.KEY, CONFIG.MAP.GEOCD, CONFIG.OAUTH_DOMAIN
+  } else {
     link = await requestClient.generateAuthLink(`https://pure-dusk-35729.herokuapp.com/callbk`);
   }
 
@@ -46,6 +40,7 @@ callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
   req.session.oauthToken = link.oauth_token;
   req.session.oauthSecret = link.oauth_token_secret;
   req.session.photoUrl = decodeURI(req.params.url);
+  req.session.hashTag = req.params.hashtg;// TODO decoder for URI path
 //  console.log('index sesn url ' +req.session.photoUrl)
   res.render('index', { authLink: link.url, authMode: 'callback' });
   }));
@@ -69,15 +64,11 @@ callbackRouter.get('/photo/:url', asyncWrapOrError(async (req, res) => {
     const tempClient = new TwitterApi({ ...TOKENS, accessToken: token, accessSecret: savedSecret });
     // Ask for definitive access token
     const { accessToken, accessSecret, client, screenName, userId } = await tempClient.login(verifier);
-
-  // console.log('Client entry ' +token);
-  // await tmpClient.v1.tweet('Hello, this is a test.');
-  const homeTimeline = await client.v1.tweet('testing sts api');
+    const homeTimeline = await client.v1.tweet('testing sts api');
     res.render('callback', { accessToken, accessSecret, screenName, userId });
   }));
 
 // Read data from Twitter *authorize* callback
-
 callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   // Invalid request
   if (!req.query.oauth_token || !req.query.oauth_verifier) {
@@ -89,6 +80,7 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   const savedToken = req.session.oauthToken;
   const savedSecret = req.session.oauthSecret;
   const savedUrl = req.session.photoUrl;
+  const savedTag = req.session.hashTag;
   // console.log(savedUrl);
   if (!savedToken || !savedSecret || savedToken !== token) {
     res.status(400).render('error', { error: 'OAuth token is not known or invalid. Your request may have expire. Please renew the auth process.' });
@@ -102,18 +94,15 @@ callbackRouter.get('/callbk', asyncWrapOrError(async (req, res) => {
   const myBuff = await got({ url: savedUrl }).buffer(); //fetch photo as buffer from AWS bucket
   let {latitude, longitude} = await exifr.gps(myBuff);  // api -> get EXIF latlng from buffer(photo)
   // api from gps.latLng to street address
-  const rsult = await got.get(  //CONFIG.MAP.KEY, CONFIG.MAP.GEOCD, CONFIG.OAUTH_DOMAIN
+  const rsult = await got.get(
   `${CONFIG.MAP.GEOCD}?latlng=${latitude},${longitude}&key=${CONFIG.MAP.KEY}`).json();
   const mapAddr = rsult.results[0].formatted_address;  // parse street.addr
   const myId :string = await client.v1.uploadMedia(myBuff,  { type: "png" }); // supply photo to twitr API
-  const mytweet = await client.v1.tweet(`@yayatvapp testing streets reporting via picture using ${mapAddr}  #savethedrop ` , {media_ids: myId}); // submit tweet w media -> photo
+  const mytweet = await client.v1.tweet(`@yayatvapp  reporting streets issue via picture  ${mapAddr} #${savedTag} ` , {media_ids: myId}); // submit tweet w media -> photo
   const short: string = mytweet.full_text;
   //console.log(short)
   const stsLnk = parseLnk(short, '://');
-
   console.log(mytweet.full_text, ' ', stsLnk)
-  // parse *mytweet.full_text* for a link to new tweet
-  //full_text: 'Hello, testing addr 1129 Florida St, San Francisco, CA 94110, USA https://t.co/S99YhWLhfX',
   res.render('callback', {  latitude, longitude, screenName, stsLnk });
 }));
 
