@@ -5,18 +5,31 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Twitter API OAuth flow test</title>
+  <style>
+  .button {
+    background-color: white;
+    color: blue;
+    border-radius: 5px;
+    border: 2px solid #1DA1F2;
+    font-size: 16px;
+    padding: 6px 12px;
+  }
+  </style>
 </head>
 <body>
   <main>
     <div id="root">
-      <strong>Hello!</strong>
+      <strong>Twitter Access</strong>
       <br>
       <% if (authMode === 'callback') { %>
-        <a href="<%= authLink %>">Click here</a> to allow this app access to your credential.
+        <!-- <a href="<%= authLink %>">Click here</a> to auth -->
       <% } %>
       <% if (authMode === 'pin') { %>
         <a id="auth-link" href="<%= authLink %>" target="_blank">Click here</a> to start login flow in your application (open in a new tab).
       <% } %>
+    </div>
+    <div><img  src="./src/icon_twit.png" width="80" height="80">
+      <button class="button" onclick="location.href=' <%= authLink %> '">Authorize</button>
     </div>
 
     <div id="auth-mode" data-mode="<%= authMode %>"></div>
