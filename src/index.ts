@@ -33,7 +33,7 @@ app.use(callbackRouter);
 app.use(pinRouter);
 
 // -- MISC --
-app.use('/src/', express.static('./src'));
+app.use('/src/', express.static('src'));
 
 // Error handler
 app.use((err: any, _: Request, res: Response, __: NextFunction) => {
