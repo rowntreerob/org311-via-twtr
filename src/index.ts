@@ -40,7 +40,9 @@ app.use((err: any, _: Request, res: Response, __: NextFunction) => {
   console.error(err);
   res.status(500).render('error');
 });
-
+console.log('map ky domain ' +process.env.GOOGLE_MAPS_API_KEY +' '+ process.env.MAPS_API_DOMAIN)
+console.log('twitr ky secrt ' +process.env.CONSUMER_TOKEN +' ' + process.env.CONSUMER_SECRET)
+console.log('env oauth ' +process.env.NODE_ENV +' ' + process.env.OAUTH_DOMAIN)
 // Start server
 app.listen(Number(CONFIG.PORT), () => {
   console.log(`App is listening on port ${CONFIG.PORT} `);
